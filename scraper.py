@@ -20,6 +20,11 @@ def convert_data_to_json():
     """ docstring (include params, what it does, and output) """
     pass
 
+def scrape_criminal_data(criminal_link):
+    """ docstring (include params, what it does, and output) """
+
+
+
 def main():
     # install and initialize webdriver
     chromedriver_autoinstaller.install() # install and add to path
@@ -41,7 +46,7 @@ def main():
     if len(accept_cookies_btn) > 0:  # find_elements will return empty list if button not found
         accept_cookies_btn[0].click()
 
-    # open rest of page
+    # open rest of page (PAGINATION)
     sleep(2.5)
     driver.find_element(
         By.XPATH, 
@@ -60,13 +65,21 @@ def main():
     for div in criminal_divs:
         l = div.find_element(By.TAG_NAME, "a")
         criminal_links.append(l)
-    
-    print(criminal_divs)
-    print(criminal_links)
 
+    # initialize data
+    return_json = {
+        "source_code": "UK_MWL",
+        "source_name": " UK Most Wanted List",
+        "source_url": " https://www.nationalcrimeagency.gov.uk/most-wanted-search",
+        "persons": []
+    }
+    persons = []
+    
     # scrape and record data from each criminals page
     
-
+    for l in criminal_links:
+        criminal_data = scrape_criminal_data(l)
+        persons.append(criminal_data)
 
 
     # close driver
