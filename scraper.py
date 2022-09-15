@@ -1,10 +1,8 @@
-from os import link
 import selenium
 import json
 import sys
 
 from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.by import By
 
 import chromedriver_autoinstaller
@@ -16,16 +14,8 @@ chromedriver_autoinstaller.install() # install and add to path
 driver = webdriver.Chrome()
 
 
-def save_to_json_file():
-    """ docstring (include params, what it does, and output) """
-    pass
-
-def convert_data_to_json():
-    """ docstring (include params, what it does, and output) """
-    pass
-
 def click_pagination_button():
-    """ docstring (include params, what it does, and output) """
+    """ Clicks the button on page to reveal the rest of the criminals """
     sleep(2.5)
     driver.find_element(
         By.XPATH, 
@@ -33,7 +23,11 @@ def click_pagination_button():
     ).click()
 
 def scrape_criminal_data(criminal_link):
-    """ docstring (include params, what it does, and output) """
+    """ 
+    Scrapes data from criminals personal page and returns it in dictionary form
+    Input) criminal_link: href link of a criminal's personal page
+    Output) criminal_data: a dictionary containing all information from criminal's personal page
+    """
     # go to criminal page
     driver.get(criminal_link)  # IS THIS A RELATIVE LINK? IF SO NEED TO FIX!!
     criminal_data = {}
@@ -43,33 +37,31 @@ def scrape_criminal_data(criminal_link):
     name = name_div.find_element(By.TAG_NAME, "h2").text
     criminal_data["name"] = name
 
-    # create about dictionary and scrape data from criminal's page
+
+    # create about dictionary, scrape all data from criminal's page, save data to about dictionary
     about = {}
     about_divs = driver.find_elements(By.CLASS_NAME, "most-wanted-customfields")
 
     div_one_labels = about_divs[0].find_elements(By.CLASS_NAME, "field-label")
     div_one_data = about_divs[0].find_elements(By.CLASS_NAME, "field-value")
     for i in range(min(len(div_one_labels), len(div_one_data))):
-        about[div_one_labels[i].text[:-2]] = div_one_data[i].text
+        about[div_one_labels[i].text[:-1]] = div_one_data[i].text
 
-    div_two_labels = about_divs[0].find_elements(By.CLASS_NAME, "field-label")
+    div_two_labels = about_divs[1].find_elements(By.CLASS_NAME, "field-label")
     div_two_data = about_divs[1].find_elements(By.CLASS_NAME, "field-value")
     for i in range(min(len(div_two_labels), len(div_two_data))):
-        about[div_two_labels[i].text[:-2]] = div_two_data[i].text
+        about[div_two_labels[i].text[:-1]] = div_two_data[i].text
 
     criminal_data["about"] = about
+
 
     # get extra info (if it exists)
     div_three_data = about_divs[2].find_elements(By.CLASS_NAME, "field-value")
     if len(div_three_data) > 0:
         criminal_data["Extra Info"] = div_three_data[0].text
 
-    # navigate back to most wanted page
-    # driver.get("https://www.nationalcrimeagency.gov.uk/most-wanted-search")
-    # click_pagination_button()
 
     return criminal_data
-
 
 
 def main():
@@ -117,22 +109,16 @@ def main():
     # scrape and record data from each criminals page
     for l in criminal_links:
         criminal_data = scrape_criminal_data(l)
-        # print(criminal_data)
         persons.append(criminal_data)
-
     return_json["persons"] = persons
 
-    # turn dict into actual json
+    # turn dict into actual json and write to json file output.json
     return_json = json.dumps(return_json, indent=4)
-
-    # write to json file
     with open("output.json", "w") as output:
         output.write(return_json)
 
     # close driver
     driver.close()
-
-
 
 
 if __name__ == "__main__":
